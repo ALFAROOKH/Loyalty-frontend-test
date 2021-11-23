@@ -1,24 +1,47 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { lazy, Suspense } from "react";
+import { Provider } from 'react-redux';
+import Loading from "./components/Loading/Loading";
+import { applyMiddleware, createStore } from 'redux';
+import createSagaMiddleware from 'redux-saga';
+import rootReducer from './store/reducers'
+import { rootSaga } from './store/sagas'
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route,
+} from "react-router-dom";
 
-function App() {
+const sagaMiddleware = createSagaMiddleware();
+
+const store = createStore(
+  rootReducer,
+  applyMiddleware(sagaMiddleware)
+);
+
+sagaMiddleware.run(rootSaga)
+
+
+const Layout = lazy(() => import("./pages/Layout"));
+const Home = lazy(() => import("./pages/Home/Home"));
+const Genre = lazy(() => import("./pages/Genre/Genre"));
+const Movie = lazy(() => import("./pages/Movie/Movie"));
+
+const App = () => {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Suspense fallback={<Loading />}>
+      <Provider store={store}>
+        <Router>
+          <Switch>
+
+            <Layout>
+              <Route path="/" exact component={Home} />
+              <Route path="/genre" exact component={Genre} />
+              <Route path="/movie" exact component={Movie} />
+            </Layout>
+          </Switch>
+        </Router>
+      </Provider>
+    </Suspense>
   );
 }
 
